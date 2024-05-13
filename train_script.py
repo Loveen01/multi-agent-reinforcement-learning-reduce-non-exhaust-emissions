@@ -10,7 +10,10 @@ from ray.rllib.env import ParallelPettingZooEnv
 from ray.tune import register_env
 
 from utils.environment_creator import par_pz_env_creator, init_env_params 
-from environment.reward_functions import combined_reward_function_factory_with_delta_wait_time, RewardConfig, delta_wait_time_reward, queue_reward
+from environment.reward_functions import RewardConfig, \
+                            combined_reward_function_factory_with_diff_accum_wait_time_normalised
+
+from environment.reward_functions_resco_grid import combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_resco_train
 from environment.observation import EntireObservationFunction, Grid2x2ObservationFunction, Cologne8ObservationFunction, Grid4x4ObservationFunction
 
 from utils.data_exporter import save_data_under_path
@@ -28,41 +31,35 @@ NUM_SECONDS = 10000
 
 # |---------------- CHANGE VAR: ENV FOLDER + ROUTE FILES -------------------|
 
-# env_folder = "data/cologne8"
-# net_file = os.path.abspath(os.path.join(env_folder, "cologne8.net.xml"))
-# route_file = os.path.abspath(os.path.join(env_folder, "cologne8.rou.xml"))
+# env_folder = "data/2x2grid"
+# net_file = os.path.abspath(os.path.join(env_folder, "2x2.net.xml"))
+# route_file = os.path.abspath(os.path.join(env_folder, "2x2.rou.xml"))
 
-env_folder = "data/2x2grid"
-net_file = os.path.abspath(os.path.join(env_folder, "2x2.net.xml"))
-route_file = os.path.abspath(os.path.join(env_folder, "2x2.rou.xml"))
-
-# env_folder = "data/4x4grid"
-# net_file = os.path.abspath(os.path.join(env_folder, "4x4.net.xml"))
-# route_file = os.path.abspath(os.path.join(env_folder, "4x4c1c2c1c2.rou.xml"))
+env_folder = "data/4x4grid_similar_to_resco_for_train"
+net_file = os.path.abspath(os.path.join(env_folder, "grid4x4.net.xml"))
+route_file = os.path.abspath(os.path.join(env_folder, "flow_file_tps_constant_for_10000s_with_scaled_route_distrib.rou.xml"))
 
 # initialise reward fn
-# alpha = 0.25
-# reward_config = RewardConfig(delta_wait_time_reward, alpha)
-# env_name_prefix = "env_cologne8"
-env_name_prefix = "2x2grid"
+alpha = 0.5
+reward_config = RewardConfig(combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_resco_train,
+                             alpha)
 
-path = os.path.join("reward_experiments", 
-                    "2x2grid", 
-                    "combined_reward_with_queue_length",
+env_name_prefix = "4x4grid_resco_train"
+
+path = os.path.join("local_train", 
+                    env_name_prefix,
+                    "combined_reward_with_diff_accum_wait_time_norm",
                     "TRAINING")
 
 observation_fn = EntireObservationFunction
 
 # ----------------- analysis checkpoint path ------------------| 
 
-# alpha = reward_config.congestion_coefficient
-# reward_fn = reward_config.function_factory(alpha)
+alpha = reward_config.congestion_coefficient
+reward_fn = reward_config.function_factory(alpha)
 
-reward_fn = queue_reward
-# reward_fn = delta_wait_time_reward
 current_time = datetime.now().strftime("%Y-%m-%d_%H_%M")     
-# checkpoint_dir_name = f"PPO_{current_time}__alpha_{alpha}"
-checkpoint_dir_name = f"PPO_{current_time}__alpha_1"
+checkpoint_dir_name = f"PPO_{current_time}__alpha_{alpha}"
 
 # ---------------| TRAIN BEGIN | -----------------------------|
 analysis_checkpoint_path = os.path.abspath(os.path.join(path, checkpoint_dir_name))
@@ -90,7 +87,6 @@ data_to_dump = {"training_environmment_args" : env_params_training,
                 "rrlib_related": {'seed': RLLIB_DEBUGGER_SEED, 
                                   'env_name_registered_with_rllib': seed_specific_env_name},
                 'reward_configs': {'reward_fn': reward_fn}}
-                                #    'reward_congestion_coeff':alpha}
                                    
 try:
     # save pre-configured (static) data 
@@ -133,10 +129,9 @@ config = (
         clip_param=0.1,
         # vf_clip_param=10,
         entropy_coeff=0.01,
-        train_batch_size=1000, # 1 env step = 5 num_seconds
-        sgd_minibatch_size=500,
+        train_batch_size=500, # 1 env step = 5 num_seconds
+        sgd_minibatch_size=250,
     )
-    # .callbacks(MyCallBacks)
     .debugging(seed=RLLIB_DEBUGGER_SEED) # identically configured trials will have identical results.
     .reporting(keep_per_episode_custom_metrics=True)
     # .evaluation(
@@ -161,11 +156,11 @@ config = (
 experiment_analysis = tune.run(
     "PPO",
     name=checkpoint_dir_name,
-    stop={"training_iteration": 100},
-    checkpoint_freq=1,
+    stop={"training_iteration": 300},
+    checkpoint_freq=4,
     local_dir=analysis_checkpoint_path,
-    config=config.to_dict()
-    # reuse_actors=True
+    config=config.to_dict(),
+    reuse_actors=True
 )
 
 ray.shutdown()
