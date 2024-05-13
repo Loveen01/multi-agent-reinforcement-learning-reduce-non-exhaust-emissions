@@ -1,0 +1,19 @@
+{
+    "class_configs": {
+        "checkpoint_path_to_evaluate": "/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions/reward_experiments/2x2grid/combined_reward_with_diff_accum_wait/TRAINING/PPO_2024-05-08_15_41__alpha_0.35/PPO_2024-05-08_15_41__alpha_0.35/PPO_env_2x2_2024-05-08_15_41_0cc5c_00000_0_2024-05-08_15-41-27/checkpoint_000049",
+        "num_env_steps": 1000
+    },
+    "env_param": {
+        "add_per_agent_info": true,
+        "add_system_info": true,
+        "fixed_ts": false,
+        "net_file": "/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions/data/2x2grid/2x2.net.xml",
+        "num_seconds": 5000,
+        "observation_class": "environment.observation.EntireObservationFunction",
+        "render_mode": "human",
+        "reward_fn": "environment.reward_functions.combined_reward_fn_with_diff_accum_wait_time",
+        "route_file": "/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions/data/2x2grid/2x2.rou.xml",
+        "single_agent": false,
+        "sumo_seed": 22
+    }
+}

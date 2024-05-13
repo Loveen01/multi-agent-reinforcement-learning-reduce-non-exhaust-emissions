@@ -1,0 +1,18 @@
+{
+    "checkpoint_dir_name_to_evaluate": "PPO_2024-05-07_07_55__alpha_0.4",
+    "congestion_coeff": 0.4,
+    "evaluation_environment_args": {
+        "add_per_agent_info": true,
+        "add_system_info": true,
+        "fixed_ts": true,
+        "net_file": "/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions/data/2x2grid/2x2.net.xml",
+        "num_seconds": 5000,
+        "observation_class": "environment.observation.EntireObservationFunction",
+        "render_mode": "human",
+        "reward_fn": "environment.reward_functions.combined_reward_fn_with_diff_accum_wait_time",
+        "route_file": "/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions/data/2x2grid/2x2.rou.xml",
+        "single_agent": false,
+        "sumo_seed": 10
+    },
+    "number_eval_steps": 1000
+}
