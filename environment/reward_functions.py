@@ -173,21 +173,6 @@ def combined_reward_function_factory_with_diff_accum_wait_time_normalised(alpha)
     
     return combined_reward_fn_with_diff_accum_wait_time_4x4grid
 
-def combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_resco_train(alpha):
-    '''this is for the 4x4 grid provided by sumo-rl'''
-    def combined_reward_fn_with_diff_accum_wait_time_4x4grid(ts: TrafficSignal) -> float:
-        """Return the reward summing tyre PM and change in total waiting time.
-        
-        Keyword arguments
-            ts: the TrafficSignal object
-        """
-        reward = tyre_pm_reward_norm_for_4x4_grid(ts) + \
-            alpha*diff_accum_wait_time_reward_norm_for_4x4grid(ts)
-        
-        return reward
-    
-    return combined_reward_fn_with_diff_accum_wait_time_4x4grid
-
 def tyre_pm_reward_norm_for_4x4_grid(ts: TrafficSignal) -> float:
     """normalised by the parameters found when measuring the environment.
     range and average are found in the environment.
@@ -201,18 +186,6 @@ def tyre_pm_reward_norm_for_4x4_grid(ts: TrafficSignal) -> float:
     tyre_pm_norm = (-get_tyre_pm(ts) - (average_pm_in_4x4grid)) / range_pm_in_4x4grid
     
     return tyre_pm_norm
-
-
-
-
-
-
-
-
-
-
-
-
 
 @dataclass
 class RewardConfig:
