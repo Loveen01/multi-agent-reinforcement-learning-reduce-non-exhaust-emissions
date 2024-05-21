@@ -1,33 +1,16 @@
 Reward Shaping Tuning results
 
-First each RL agent in the 4-intersection network was trained with a reward function concerned with only optimising for minimising emissions \eqref{eq:emissions_only_reward}. Intuitively this resulted in the signal intersection controller to eventually stabilise on the red light for a large chunk of the simulation period. With minimising emissions being its sole concern, this had yielded the first order solution to this optimisation problem where the traffic signals halt at red continuously.
+First, each RL agent in the 4-intersection network was trained with a reward function focused solely on minimizing emissions \eqref{eq:emissions_only_reward}. Intuitively, this resulted in the signal intersection controller eventually stabilizing the red light for a large portion of the simulation period. With minimizing emissions as its sole concern, this yielded a first-order solution to the optimization problem where traffic signals remained red continuously.
 
-Therefore, an congestion penalty term was added, \eqref{eq congestion_penalty_equation}, representing the mean difference in waiting time \ref{sec1.2} of all vehicles at the intersection, a term used alone in many reinforcement learning problems to optimise for congestion and network flow \cite{}. This term \eqref{eq:congestion_penalty_term_uncapped} was added linearly to the absolute accelerations, forming equation \eqref{eq composite_reward_with_uncapped_penalty}. With the scales of the two terms being different, both terms had been normalised via mean normalisation, and a coefficient, alpha, was given to the congestion penalty term. 
+Therefore, a congestion penalty term was added \eqref{eq:congestion_penalty_equation}, representing the differences in the sum of waiting times \ref{sec1.2} of all vehicles at the intersection—a term commonly used in many reinforcement learning problems to optimize for congestion and network flow \cite{}. This term \eqref{eq:congestion_penalty_term_uncapped} was added linearly to the absolute accelerations, forming equation \eqref{eq:composite_reward_with_uncapped_penalty}. With the scales of the two terms being different, both terms were normalized via mean normalization, and a coefficient, alpha, was assigned to the congestion penalty term.
 
-After conducting multiple training experiments using the reward function \eqref{eq:congestion_penalty_term_uncapped}, it was found that the congestion penalty term, although normalised, had added noise to the reward function, that caused it to learn ineffectively. This is because the values had ranged in the positive and negative domain, it was given a positive reward ...It was realised that it caused innefective learning, and added noise to the reward function. Figure (3:figure of reward function over time for the normalised, then show the same data for capped). To resolve this, the difference in waiting time was capped the congestion penalty term eq(congestion_penalty), such that the positive range (indicating mean_waiting_time < mean_waiting_time.last_measure) is discarded from the term ref{congestion_penalty_capped}.  Capping this term ensured that every time the waiting time exceeded the last measure, an immediate direct penalty was given to the agent ensuring that it is only penalised when it performed worse, and not rewarded otherwise. The models learning curves are shown for all alpha coefficient in figure 4. 
+After conducting multiple training experiments using the reward function \eqref{eq:congestion_penalty_term_uncapped}, it was found that the congestion penalty term, although normalised, had added noise to the reward function, that caused it to learn ineffectively. The values of the reward function ranged in both the positive and negative domains, with positive rewards given .... It is believed that this positive reward had interfered with the (negative) emissions component, slightly reducing the overall values. Although the positive rewards credited the agent when congestion was better than usual, this crediting interfered with the rewards obtained from absolute accelerations, causing the reward function to fluctuate rapidly. This added noise resulted in ineffective learning. (Figure - show that the reward was much smoother after capping the reward?)
 
-% equation fn 2 - reward function capped
-The reward \( r_i \) for intersection \( i \) is defined as:
-\begin{equation}
-r_i = \sum_{v \in V_i} \left| a_v \right| + \alpha \sum_{v \in V_i} \Delta w_v
-\label{eq:composite_reward_fn}
-\end{equation}
-where:
-\[
-\left| a_v \right| = \text{absolute acceleration of vehicle } v \text{ at intersection } i
-\]
-\[
-\Delta w_v = \text{wait\_time\_before} - \text{wait\_time\_now} \text{ for vehicle } v \text{ at intersection } i
-\]
-\[
-V_i = \text{set of all vehicles at the lanes of intersection } i
-\]
-\[
-\alpha = \text{weighting factor}
-\]
+To improve and simplify the reward function, the congestion penalty term C_i  was capped at 0 when it fell within the positive range (indicating that the current vehicle sum waiting time is less than the last measured vehicle sum of waiting times). By discarding the positive values of this term, it ensured that an immediate negative penalty was applied only when the current waiting time exceeded the previous measure. This approach penalized the agent solely for increased waiting times, without rewarding reductions. The values remained scaled by a factor of 100. This modification resulted in more effective learning, as shown by the learning curves for all alpha coefficients in Figure 4.
 
+% **when assigning positive values when the /eqref{congestion_penalty_term_uncapped} was positive, indicating that the total waiting time recorded at the current simulation step is smaller than the waiting time assigned in the previous waiting step. Figure (3:figure of reward function over time for the normalised, then show the same data for capped OR show data in Appendix?). 
 
-With congestion coefficients in the range 0 - 0.75, being very small, still yet focused solely on reducing emissions, diminishing the aim of the congestion term in the reward function. Whilst the recorded systems tyre emissions is extremely low (3 - 10 emissions/s), the resulting mean waiting times of the vehicles in the network is ridiculously high, approximately ten times that of its fixed control baseline. This is due to all the cars coming to a halt at the junctions, causing a reduction in accelerations over a large chunk of the simulation period. 
+With congestion coefficients in the range 0 - 0.75, being very small, still yet focused solely on reducing emissions, diminishing the aim of the congestion term in the reward function. Whilst the recorded systems tyre emissions is extremely low (3 - 10 emissions/s), the resulting sum of waiting times of the vehicles in the network is ridiculously high, approximately ten times that of its fixed control baseline. This is due to most of the cars coming to a halt at the junctions, causing a reduction in accelerations over a large chunk of the simulation period. At an alpha = 0.75, what was found was that one of the agent had optimised the reward function effectively, but for the other 3 agents, it was found . With a low penalty assigned, it is clear that the training quickly stabilised at having only one agent work well, but the other 3 not. 
 
 Likewise, when the reward function is configured to optimising solely for delta waiting time, the system average waiting time rests as 5s, a value much lower than the fixed control baseline.
 
@@ -52,3 +35,22 @@ Reducing the observations followed a more greedy approach - > it was more concer
 
 % diff_accum_wait_time
 The RL based agents performance for the 4-intersection were compared to the fixed control strategy. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Discussion and reflection
+
+Reward Shaping and Tuning 
+
+The art of reward shaping is an art of itself, and sometimes does not have a straight forward answer ... 
