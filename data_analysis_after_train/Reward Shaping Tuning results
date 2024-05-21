@@ -1,0 +1,34 @@
+Reward Shaping Tuning results
+
+First each RL agent in the 4-intersection network was trained with a reward function concerned with only optimising for absolute accelerations. Each Intuitively this resulted in the signal intersection controller to eventually stabilise on the red light. Intuitively, with only being concerned with minimising the expected absolute accelerations, this yields the first order solution to this optimisation problem where the traffic signals halt at red continuously.
+
+Therefore, a penalisation term was added, composing of the mean difference in waiting time \ref{sec1.2} of all vehicles at the intersection. This reward, a popular reward used in traffic optimisation \cite{}, ranged in the positive domain for some time, before dipping to the negative domain. So it was learned that capping the reward function, such that the positive term (indicating mean_waiting_time <  mean_waiting_time.last_measure) is discarded, as it had only added unnecessary noise to the training phase. Capping this term ensured that every time the waiting time exceeded the last measure, an immediate penalty was given to the agent.\cite{}
+
+However with the scales of the two terms being different, a coefficient was given to the congestion penalty. A training session has been conducted for every coefficients during the tuning process. 
+
+With congestion coefficients in the range 0 - 0.75, being very small, focuses solely on reducing emissions, diminishing the aim of the congestion term in the reward function. Whilst the recorded systems tyre emissions is extremely low (3 - 10 emissions/s), the resulting mean waiting times of the vehicles in the network is ridiculously high, approximately ten times that of its fixed control baseline. This is due to all the cars coming to a halt at the junctions, causing a reduction in accelerations over a large chunk of the simulation period. 
+
+Likewise, when the reward function is configured to optimising solely for delta waiting time, the system average waiting time rests as 5s, a value much lower than the fixed control baseline.
+
+At a coefficent above 0.75, the penalisation term begins to take effect as we improvements in the systems mean waiting time, where it scores 20percent higher than the respective fixed time controlled signalised intersections. At above this coefficient the mean waiting time metric surpasses that achieved by the reward function of optimising solely for reduced waiting time (eq 2). As we increase the scale of the coefficients to whole numbers, alpha = [2, 3, 5, 10], there is an overall reduction in the average waiting times, however, the systems total emissions increases from 14 emissions/s to 17 emissions/s (1dp), reaching that produced by the extreme reward function of solely optimising for delta waiting time. Therefore, the alpha deemed suitable for further experiments is the alphas in the range 1-2, at this point this alpha seeks a balance in optimising for average waiting time (being < fixed time control baseline), as well achieving an emission value of less that obtained by fixed time control and that obtained by reward function 3 (fn3 = optimising for delta waiting time).
+
+
+
+
+
+
+
+
+
+
+In terms of the performance of individual agents, this can be said the same for 2 agents in the environment, where the other 2 perform same emissions as the fixed control baseline. For the waiting time, it is less than the original fixed time control baseline,  
+0.8 is best so far - it scores better than the fixed control baseline on all metrics. Only for the agent 6, did it score similar to the emissions produced at its fixed control baseline.  
+
+Reducing the observations followed a more greedy approach - > it was more concerned with reducing absolute accelerations of its surroundings. This may be because of the fact that due to a reduction in observations space of all other signalised intersections, our penalty is slightly reduced. 
+
+
+Reducing Observation Space
+
+
+<!-- show table between : -->
+<!-- 0_6,  -->
