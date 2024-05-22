@@ -1,0 +1,110 @@
+Reward Shaping Results
+
+Initially, each RL agent in the 4-intersection network was trained with a reward function focused solely on minimizing emissions, as detailed in \(\eqref{eq:emissions_only_reward}\). This strategy naturally inclined the signal intersection controller to maintain the red light for the majority of the simulation period. Consequently, the primary solution to the optimization problem involved keeping the traffic signals continuously red, a direct outcome of the emission-reduction focus.
+
+Therefore, to address congestion, a congestion penalty term was added \eqref{eq:congestion_penalty_equation}, representing the differences in the sum of waiting times \ref{sec1.2} of all vehicles at the intersection— a term commonly used in many reinforcement learning problems to optimize for congestion and network flow \cite{}. This term \eqref{eq:congestion_penalty_term_uncapped} was added linearly to the absolute accelerations, forming equation \eqref{eq:composite_reward_with_uncapped_penalty}. Given the differing scales of the two terms, the average and range values were collected from evaluating multiple simulations of the agent in a fixed time control environment, to inform the mean normalisation process of the reward function. Additionally, a coefficient, alpha, was assigned to the congestion penalty term to balance its influence.
+
+After conducting multiple training experiments, it was found that the congestion penalty term has added noise to the reward function, as it ranged in both the positive and negative domain, causing it to learn ineffectively. The interference of the positive domain of the congestion term (signifying rewards credited when the agent congestion was better than usual) interfered with the (negative) emissions reward component, adding extra noise to the overall reward function. This caused the reward function to fluctuate more sharply, resulting in a rough reward function and consequently ineffective learning. This is evident with the low ratios of explained variance depicted in the training process in Figure {}, where the value function cannot seem to predict the reward of being in a particular state very accurately. Due to the high variability in the reward function, approximating the true value of a given state is more challenging as shown in the charts {}. 
+
+To resolve this, the congestion penalty term C_i was capped at 0 when it fell within the positive range, discarding the reward assigned to the agent when the current vehicle sum waiting time is less than that which was last measured, see /ref{2} for interpretation of reward. By discarding the positive values of this term, it ensured that only an immediate negative penalty is applied when the current waiting time exceeded the previous measure. This approach penalized the agent solely for increase in waiting times of the vehicles surrounding the intersection, without rewarding any captured reductions. The values remained scaled by a factor of 100. This modification to the reward function reduced the variability and the moving average convergence of the reward function by approximately factor of 2, as shown in /ref{}. This reduction in variability, evidently improved the value function in the policies neural network approximation of the true reward value, achieving higher and more stable explained variance, as observed in the explained variance graphs, Figure {5}. 
+
+Alpha Tuning 
+
+With congestion coefficients in the range 0 - 0.75, being very small, yet remained focused solely on reducing emissions, diminishing the aim of the congestion penalty in the reward function. Whilst the recorded systems mean tyre emissions is extremely low (3 - 10 emissions/s), the resulting sum of waiting times of the vehicles in the network is ridiculously high, approximately ten times that of its fixed control baseline. This is due to most of the cars coming to a halt at the junctions, causing a reduction in accelerations over a large chunk of the simulation period, as seen similarly in alpha=0 scenarious. 
+
+At an alpha = 0.75, an inspection of the video shown one of the agents had optimised the reward function effectively, but for the other 3 agents, they had stabilised on the practice of causing all cars to halt at the intersection /ref{GRAPH OF ONLY ONE TRAFFIC SIGNAL SHOWING HALTING CARS OTHER 3 FINE}. With a low penalty assigned, it is clear that the training quickly stabilised at having only one agent work well, but the other 3 not. 
+
+TRAINING GRAPH! - LEARNING CURVES OF ALPHA = 0 
+
+Likewise, when the reward function is configured to optimising solely for delta waiting time, /eqref{congestion_penalty_capped}, the system average waiting time rests as 5s, a value much lower than the fixed control baseline.
+
+TRAINING GRAPH! - LEARNING CURVES OF DELTA_WAIT_TIME
+
+
+
+
+
+
+
+In terms of the performance of individual agents, this can be said the same for 2 agents in the environment, where the other 2 perform same emissions as the fixed control baseline. For the waiting time, it is less than the original fixed time control baseline,  
+0.8 is best so far - it scores better than the fixed control baseline on all metrics. Only for the agent 6, did it score similar to the emissions produced at its fixed control baseline.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Discussion and reflection
+-------------------------
+Reward Shaping and Tuning - The art of reward shaping is an art of itself, and sometimes does not have a straight forward answer ... Iterative amplification, etc. 
+
+-----
+Load testing - testing the performance of the algorithm over varying levels of traffic
+
+
+
+Reducing the observations followed a more greedy approach - > it was more concerned with reducing absolute accelerations of its surroundings. This may be because of the fact that due to a reduction in observations space of all other signalised intersections, our penalty is slightly reduced. 
+
+
+
+Suggested Figures:
+
+	1.	Figure 1: Initial Training with Emissions-Only Reward Function
+	•	Description: This figure should show the training results when using the reward function focused solely on minimizing emissions.
+	•	Justification: It will illustrate the problem of the controller stabilizing on the red light for long periods, showing low emissions but likely high waiting times.
+	4.	Figure 4: Learning Curves for All Alpha Coefficients
+	•	Description: Learning curves showing the agent’s performance for various alpha coefficients after applying the capped congestion penalty.
+	•	Justification: This figure will demonstrate the improved learning effectiveness and performance stability across different alpha values.
+
+Detailed Examples:
+
+	1.	Figure 1: Initial Training with Emissions-Only Reward Function
+	•	Plot: Emissions over time vs. Waiting time over time.
+	•	Expected Observation: Emissions decrease significantly while waiting time increases as signals remain red.
+	2.	Figure 2: Reward Function with Uncapped Congestion Penalty
+	•	Plot: Reward function values over time.
+	•	Expected Observation: Significant fluctuations in reward values due to positive rewards for reduced congestion interfering with negative rewards for emissions.
+	3.	Figure 3: Comparison of Reward Function Before and After Capping Congestion Penalty
+	•	Plot: Side-by-side or overlay plot showing reward function values over time for both cases.
+	•	Expected Observation: Smoother reward function after capping the congestion penalty.
+	4.	Figure 4: Learning Curves for All Alpha Coefficients
+	•	Plot: Performance metrics (e.g., total emissions, average waiting time) over training iterations for different alpha values.
+	•	Expected Observation: Improved and more consistent performance after applying the capped congestion penalty.
+
+
+
+The higher peaks in explained variance indicate moments where the value function captures the variability well, but the frequent drops suggest difficulty in maintaining a good approximation due to high variability in the rewards. The significant fluctuations highlight the instability and challenges faced by the value function in learning from an uncapped reward function.
