@@ -17,6 +17,8 @@ from environment.reward_functions import delta_wait_time_reward, \
                                          tyre_pm_reward, \
                                          combined_reward_function_factory_with_diff_accum_wait_time
 
+from environment.reward_functions_resco_grid import combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_resco_train, \
+                                                    combined_reward_function_factory_with_diff_accum_wait_time_capped
 from environment.observation import EntireObservationFunction, Cologne8ObservationFunction
 
 from utils.environment_creator import par_pz_env_creator, par_pz_env_creator_for_fixed_time_only, init_env_params
@@ -44,10 +46,9 @@ CHECKPOINT_DIR_NAMES = ["PPO_2024-04-18_12_59__alpha_0",
 alpha_checkpoint_zipped = list(zip(ALPHAS_TO_TEST, CHECKPOINT_DIR_NAMES))
 
 # ---------------- ENV FOLDER + ROUTE FILES -------------------
-
-# env_folder = "data/4x4grid"
-# net_file_abs = os.path.abspath(os.path.join(env_folder, "4x4.net.xml"))
-# route_file_abs = os.path.abspath(os.path.join(env_folder, "4x4c1c2c1c2.rou.xml"))
+# env_folder = "data/2x2grid"
+# net_file_abs = os.path.abspath(os.path.join(env_folder, "2x2.net.xml"))
+# route_file_abs = os.path.abspath(os.path.join(env_folder, "2x2.rou.xml"))
 
 # env_folder = "data/4x4grid_similar_to_resco_for_train"
 # net_file_abs = os.path.abspath(os.path.join(env_folder, "grid4x4.net.xml"))
@@ -55,37 +56,47 @@ alpha_checkpoint_zipped = list(zip(ALPHAS_TO_TEST, CHECKPOINT_DIR_NAMES))
 
 env_folder = "data/4x4grid_similar_to_resco_for_train"
 net_file_abs = os.path.abspath(os.path.join(env_folder, "grid4x4.net.xml"))
-route_file_abs = os.path.abspath(os.path.join(env_folder, "flow_file_tps_constant_for_5000s_with_scaled_route_distrib.rou.xml"))
+route_file_abs = os.path.abspath(os.path.join(env_folder, "flow_file_tps_constant_for_10000s_with_scaled_route_distrib.rou.xml"))
+
+# env_folder = "data/4x4grid_similar_to_resco_train_new_files"
+# net_file_abs = os.path.abspath(os.path.join(env_folder, "grid4x4.net.xml"))
+# route_file_abs = os.path.abspath(os.path.join(env_folder, "random_trips_54.trips.xml"))
+
 
 # ---------------- OVERRIDE FOR PARTIAL TESTING FOR SPECIFIC NEEDS --------------- | 
 
-ALPHAS_TO_TEST = [0.4]
-CHECKPOINT_DIR_NAMES = ["PPO_2024-05-09_21_06__alpha_0.4"]
+ALPHAS_TO_TEST = [1]
+CHECKPOINT_DIR_NAMES = ["PPO_2024-05-25_02_37__alpha_1"]
 
-SUMO_SEEDS = [10, 39, 22, 31, 55, 39, 83, 49, 51, 74]
+SUMO_SEEDS = [345, 6009, 431, 687, 771, 904, 560, 216, 5559]
+SUMO_SEEDS = [7021, 8932, 9011, 10022, 34030, 60142, 72944, 84013, 97903]
 
-SUMO_SEEDS = [39]
 alpha_checkpoint_zipped = list(zip(ALPHAS_TO_TEST, CHECKPOINT_DIR_NAMES))
 
 # reward_folder_name = "combined_reward_with_diff_accum_wait"
 # combined_reward_fn_factory = combined_reward_function_factory_with_diff_accum_wait_time
-reward_folder_name = "diff_accum_wait_time_reward_raw"
+# combined_reward_fn_factory = combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_resco_train
+combined_reward_fn_factory = combined_reward_function_factory_with_diff_accum_wait_time_capped
+
+reward_folder_name = "combined_reward_function_factory_with_diff_accum_wait_time_capped"
 
 NUM_ENV_STEPS = 1000
 SIM_NUM_SECONDS = NUM_ENV_STEPS*5
 
 # ---------------------- FTC TEST ------------------------------------------
 for alpha, checkpoint_dir_name in alpha_checkpoint_zipped: 
-    
-    # initial_path_to_store = f"reward_experiments/2x2grid/{reward_folder_name}/EVALUATION/{checkpoint_dir_name}/fixed_tc"
-    # initial_path_to_store = f"local_train/4x4grid/{reward_folder_name}/EVALUATION/{checkpoint_dir_name}/fixed_tc"
-    # initial_path_to_store = f"reward_measuring_experiment/4x4grid_resco_train/{reward_folder_name}/fixed_tc"
-    initial_path_to_store = f"reward_measuring_experiment/4x4grid_resco_train_corrected_5000s_scaled_route_distrib/{reward_folder_name}/fixed_tc"
 
-    # combined_reward_fn = combined_reward_fn_factory(alpha)
+    initial_path_to_store = "azure_train/4x4grid_resco_train/4x4grid_env_resco_train_with_capped_reward_3s_continue/EVALUATION/original_scaled_route_flow_file_evaluation/PPO_2024-05-25_02_37__alpha_1/fixed_tc"
+    
+    FOLDER_NAME = "4x4grid_env_resco_train_with_capped_reward_3s_continue"
+    # eval_folder_type = "new_route_file"
+    # eval_folder_type = "original_scaled_route_flow_file_evaluation"
+    # initial_path_to_store = os.path.abspath(f"azure_train/4x4grid_resco_train/{FOLDER_NAME}/EVALUATION/{eval_folder_type}/{checkpoint_dir_name}/fixed_tc")
+
+    combined_reward_fn = combined_reward_fn_factory(alpha)
     # reward_fn = delta_wait_time_reward
     # reward_fn = tyre_pm_reward
-    combined_reward_fn = diff_accum_wait_time_reward_raw
+    # combined_reward_fn = diff_accum_wait_time_reward_raw
 
     for sumo_seed in SUMO_SEEDS:
         
@@ -104,12 +115,13 @@ for alpha, checkpoint_dir_name in alpha_checkpoint_zipped:
                                           observation_function=EntireObservationFunction,
                                           num_seconds=SIM_NUM_SECONDS,
                                           sumo_seed=sumo_seed,
-                                          render=True,
+                                          yellow_time=3,
                                           fixed_ts=True)
+                                        #   render=True)
 
         # ------------------ SAVE DATA AND STORE ------------------
 
-        eval_config_info = {"checkpoint_dir_name_to_evaluate": checkpoint_dir_name,
+        eval_config_info = {#"checkpoint_dir_name_to_evaluate": checkpoint_dir_name,
                             "number_eval_steps": NUM_ENV_STEPS,
                             "congestion_coeff": alpha,
                             "evaluation_environment_args" : env_params_eval}

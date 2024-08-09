@@ -21,8 +21,9 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from pprint import pprint
 
+from traci.exceptions import FatalTraCIError
+
 ray.shutdown()
-ray.init()
 
 class TrainedModelEvaluator(
 ):
@@ -47,6 +48,7 @@ class TrainedModelEvaluator(
         # has to be same env name as the one registered with the checkpoint
         self.checkpoint_env_name = checkpoint_env_name
 
+        # self.checkpoint_num = checkpoint_num
         self.route_file = route_file_path
         self.net_file = net_file_path
         self.reward_function = reward_fn
@@ -72,13 +74,17 @@ class TrainedModelEvaluator(
         # dependency: its able to get the agent, because single_agent 
         # is by default set to False in init_env_params()
         par_env = ParallelPettingZooEnv(par_pz_env_creator(init_env_params(net_file = self.net_file,
-                                                                           route_file = self.route_file)))                             
+                                                                           route_file = self.route_file)))
+        par_env.reset()               
         par_env_agents_ids = par_env.get_agent_ids()
+        par_env.close()  
         return par_env_agents_ids
 
     def evaluate(self):
 
         for sumo_seed in self.sumo_seeds_to_test:
+
+            ray.init()
             
             path_to_store_seed = os.path.join(self.path_to_store_all_seeds,
                                                             f"SEED_{sumo_seed}")
@@ -93,11 +99,12 @@ class TrainedModelEvaluator(
             # configure env params
             env_params_eval = init_env_params(net_file = self.net_file,
                                               route_file = self.route_file,
-                                              sumo_seed=sumo_seed,
-                                              reward_function=self.reward_function,
-                                              observation_function=self.observation_function,
-                                              num_seconds=self.sim_num_seconds,
-                                              render=True)
+                                              sumo_seed = sumo_seed,
+                                              reward_function = self.reward_function,
+                                              observation_function = self.observation_function,
+                                              num_seconds = self.sim_num_seconds,
+                                              yellow_time = 3,
+                                              render=False)
     
             # ------------------ SAVE DATA AND STORE -------------------------            
             seed_config_data = {"env_param": deepcopy(env_params_eval)}
@@ -136,16 +143,19 @@ class TrainedModelEvaluator(
                                    csv_path = csv_metrics_path))
 
             obs, info = par_env.reset()
+            
             try:
                 for env_step in range(self.num_env_steps):
-
+                    
+                    print("Env Step: ", env_step)
+                    
                     actions = {}
 
                     for agent_id in self.par_env_agents_ids:
                         shape = obs[agent_id].shape
                         dims = shape[0]
                         print(f"{agent_id}_dims: ", dims)
-                        print(f"{agent_id}_shape: ", shape)
+                        # print(f"{agent_id}_shape: ", shape)
                         action, state_outs, infos = trained_algo.get_policy(agent_id).compute_actions([obs[agent_id].reshape((1,dims))])
                         actions[agent_id] = action.item()
 
@@ -163,15 +173,18 @@ class TrainedModelEvaluator(
                                                 total_agent_reward=total_agent_reward)
 
             except Exception as e:
-                # Handle any exceptions that might occur in the loop
-                print(f"Evaluation unsuccesful: An exception occurred: {e}")
-                raise
+                print(f"Evaluation unsuccessful: An exception occurred: {e}")
+                # Handle any other exceptions
 
             else:
                 print(f"Successful completion of evaluation of checkpoint: {self.checkpoint_path}")
-                
+
             finally:
-                par_env.close()
+                try:
+                    par_env.close()
+                except Exception as e:
+                    print(f"Failed to close the environment properly: {e}")
+                ray.shutdown()
 
     def log_csv_reward_metrics(self, extra_metrics_csv_path, reward_dict, total_agent_reward, current_env_step):
         with open(extra_metrics_csv_path,  "a", newline="") as f:
