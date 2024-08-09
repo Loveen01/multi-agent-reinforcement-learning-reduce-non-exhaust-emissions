@@ -13,7 +13,7 @@ import sys
 sys.path.append('/Users/loveen/Desktop/Masters project/rl-multi-agent-traffic-nonexhaust-emissions')
 from environment.my_custom_envs import SumoEnvironmentPZCountAllRewards
 
-def init_env_params(net_file, route_file, reward_function=None, observation_function=None, num_seconds=None, sumo_seed=None, fixed_ts=False, render=False, begin_time=None):
+def init_env_params(net_file, route_file, reward_function=None, observation_function=None, num_seconds=None, sumo_seed=None, fixed_ts=False, render=False, begin_time=None, yellow_time=None):
         
         env_params = {"net_file": net_file,
                       "route_file": route_file,
@@ -35,6 +35,8 @@ def init_env_params(net_file, route_file, reward_function=None, observation_func
                 env_params["sumo_seed"] = sumo_seed
         if begin_time:
                 env_params["begin_time"] = begin_time
+        if yellow_time:
+                env_params["yellow_time"] = yellow_time
         return env_params
 
 def par_pz_env_creator(env_params, 
