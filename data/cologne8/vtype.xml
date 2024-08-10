@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2024-05-29 17:03:51 by Eclipse SUMO duarouter Version 1.19.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="data/cologne8/cologne8.net.xml"/>
+        <route-files value="data/cologne8/random_trips.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="data/cologne8/random_routes.rou.xml"/>
+        <vtype-output value="data/cologne8/vtype.xml"/>
+        <write-trips value="true"/>
+    </output>
+
+    <time>
+        <end value="100000"/>
+    </time>
+
+    <report>
+        <verbose value="true"/>
+        <log value="ogs"/>
+    </report>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd"/>
