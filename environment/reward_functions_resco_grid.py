@@ -1,6 +1,8 @@
 from sumo_rl import TrafficSignal
 from environment.helper_functions import get_total_waiting_time, get_tyre_pm
 
+from environment.reward_functions import tyre_pm_reward_smaller_scale
+
 from dataclasses import dataclass
 
 def tyre_pm_reward(ts: TrafficSignal) -> float:
@@ -79,3 +81,37 @@ def combined_reward_function_factory_with_diff_accum_wait_time_normalised_for_re
     
     return combined_reward_fn_with_diff_accum_wait_time_4x4grid
 
+def diff_accum_wait_time_reward_capped(ts: TrafficSignal) -> float:
+    """Return the reward as the change in total cumulative delays.
+
+    The total cumulative delay at time `t` is the sum of the accumulated wait time
+    of all vehicles present, from `t = 0` to current time step `t` in the system.
+
+    See https://arxiv.org/abs/1704.08883
+    
+    Keyword arguments
+        ts: the TrafficSignal object
+    """
+    ts_wait = sum(ts.get_accumulated_waiting_time_per_lane()) / 100.0
+    congestion_reward = ts.last_measure - ts_wait
+    ts.last_measure = ts_wait
+    
+    if congestion_reward > 0:
+        return 0
+    else:
+        return congestion_reward
+
+def combined_reward_function_factory_with_diff_accum_wait_time_capped(alpha):
+    '''this is for the 4x4 grid provided by sumo-rl'''
+    def combined_reward_fn_with_diff_accum_wait_time_capped(ts: TrafficSignal) -> float:
+        """Return the reward summing tyre PM and change in total waiting time.
+        
+        Keyword arguments
+            ts: the TrafficSignal object
+        """
+        reward = tyre_pm_reward_smaller_scale(ts) + \
+            alpha*diff_accum_wait_time_reward_capped(ts)
+        
+        return reward
+    
+    return combined_reward_fn_with_diff_accum_wait_time_capped
