@@ -1,0 +1,58 @@
+Discussion and reflection
+-------------------------
+
+Reward Shaping and Tuning
+
+The art of reward shaping is an art of itself, and sometimes does not have a straight forward answer ... Iterative amplification, etc. 
+Future work can further explore dynamic adjustment of alpha based on real-time traffic conditions to enhance adaptive traffic signal control systems.
+
+This data highlights the critical importance of fine-tuning the alpha coefficient. A low alpha value skews the optimization heavily towards emission reduction, neglecting congestion management. Conversely, a higher alpha value effectively reduces waiting times, albeit with a concomitant increase in emissions. The optimal alpha range of 2 to 3 appears to offer a pragmatic compromise, balancing both objectives efficiently.
+
+--------------------------------------------------------------------------
+Environment Conditions 
+
+Load testing - testing the performance of the algorithm over varying levels of traffic
+
+
+--------------------------------------------------------------------------------
+
+Reducing the observations followed a more greedy approach - > it was more concerned with reducing absolute accelerations of its surroundings. This may be because of the fact that due to a reduction in observations space of all other signalised intersections, our penalty is slightly reduced. 
+
+
+
+Suggested Figures:
+
+	1.	Figure 1: Initial Training with Emissions-Only Reward Function
+	•	Description: This figure should show the training results when using the reward function focused solely on minimizing emissions.
+	•	Justification: It will illustrate the problem of the controller stabilizing on the red light for long periods, showing low emissions but likely high waiting times.
+	4.	Figure 4: Learning Curves for All Alpha Coefficients
+	•	Description: Learning curves showing the agent’s performance for various alpha coefficients after applying the capped congestion penalty.
+	•	Justification: This figure will demonstrate the improved learning effectiveness and performance stability across different alpha values.
+
+Detailed Examples:
+
+	1.	Figure 1: Initial Training with Emissions-Only Reward Function
+	•	Plot: Emissions over time vs. Waiting time over time.
+	•	Expected Observation: Emissions decrease significantly while waiting time increases as signals remain red.
+	2.	Figure 2: Reward Function with Uncapped Congestion Penalty
+	•	Plot: Reward function values over time.
+	•	Expected Observation: Significant fluctuations in reward values due to positive rewards for reduced congestion interfering with negative rewards for emissions.
+	3.	Figure 3: Comparison of Reward Function Before and After Capping Congestion Penalty
+	•	Plot: Side-by-side or overlay plot showing reward function values over time for both cases.
+	•	Expected Observation: Smoother reward function after capping the congestion penalty.
+	4.	Figure 4: Learning Curves for All Alpha Coefficients
+	•	Plot: Performance metrics (e.g., total emissions, average waiting time) over training iterations for different alpha values.
+	•	Expected Observation: Improved and more consistent performance after applying the capped congestion penalty.
+
+
+
+The higher peaks in explained variance indicate moments where the value function captures the variability well, but the frequent drops suggest difficulty in maintaining a good approximation due to high variability in the rewards. The significant fluctuations highlight the instability and challenges faced by the value function in learning from an uncapped reward function.
+
+
+This data highlights the critical importance of fine-tuning the alpha coefficient. A low alpha value skews the optimization heavily towards emission reduction, neglecting congestion management. Conversely, a higher alpha value effectively reduces waiting times, albeit with a concomitant increase in emissions. The optimal alpha range of 2 to 3 appears to offer a pragmatic compromise, balancing both objectives efficiently.
+
+
+
+
+OLD stuff 
+With congestion coefficients in the range 0 - 0.75, linking to small penalty values, remained focused solely on reducing emissions. Whilst the recorded systems mean tyre emissions is extremely low (3 - 10 emissions/s), the resulting sum of waiting times of the vehicles in the network is ridiculously high, approximately ten times that of its fixed control baseline. This is due to most of the cars coming to a halt at the junctions, causing a reduction in accelerations over a large chunk of the simulation period, as seen similarly in alpha=0 scenarios. 
